@@ -10,7 +10,7 @@
 | Лабораторная работа 2 | * |  |
 | Лабораторная работа 3 | * |  |
 | Лабораторная работа 4 | * |  |
-| Лабораторная работа 5 | * |  |
+| Лабораторная работа 5 | # |  |
 
 знак "*" - задание выполнено; знак "#" - задание не выполнено;
 
@@ -40,9 +40,9 @@
 # Лабораторная работа №1
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Залание 1 | * |  |
-| Задание 2 | * |  |
-| Задание 3 | * |  |
+| Залание 1 | * | 20 |
+| Задание 2 | * | 60 |
+| Задание 3 | * | 60 |
 ## Цель работы
 Установить необходимое программное обеспечение, которое пригодится для создания интеллектуальных моделей на Python. Рассмотреть процесс установки игрового движка Unity для разработки игр.
 ## Задание 1
@@ -77,8 +77,9 @@ public class odsfgj : MonoBehaviour
 
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Залание 1 | * |  |
-| Задание 2 | * |  |
+| Залание 1 | * | 60 |
+| Задание 2 | * | 20 |
+| Задание 3 | # | 20 |
 ## Цель работы
 Ознакомиться с основными операторами зыка Python на примере реализации линейной регрессии.
 ## Задание 1
@@ -149,9 +150,9 @@ for index, time_point in enumerate(time_stamps, start=1):
 # Лабораторная работа №3
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Залание 1 | * |  |
-| Задание 2 | * |  |
-| Задание 3 | * |  |
+| Залание 1 | * | 60 |
+| Задание 2 | * | 60 |
+| Задание 3 | * | 20 |
 ## Цель работы
 Научиться работать с балансировкой оружия в игре 
 ## Задание 1
@@ -305,10 +306,201 @@ plt.show()
 # Лабораторная работа №4
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Залание 1 | * |  |
+| Залание 1 | * | 20 |
+| Залание 2 | * | 60 |
+| Залание 3 | * | 20 |
 ## Цель работы
 ## Задание 1
 ###  Реализовать перцептрон, который умеет производить вычисления в проекте Unity
+Перцептрон, вычисляющий OR. Он работает корректно, так как TotalError = 0
+![image](https://github.com/user-attachments/assets/4171ceca-0b6b-4057-97c5-6fbdc6f12871)
+![image](https://github.com/user-attachments/assets/86eb9606-dad1-4fa4-8505-eab4ffcb44ee)
+## AND 
+Перцептрон, вычисляющий AND.Он так же работает корректно, так как TotalError = 0, как и в прошлом примере
+![image](https://github.com/user-attachments/assets/523f39d3-c55f-4887-b902-4a3e6a45e461)
+![image](https://github.com/user-attachments/assets/c57596a5-164d-49cc-a0ea-ec34ed2362b3)
+## NAND 
+Перцептрон, вычисляющий NAND, аналогично TotalError = 0. Он работает без ошибок.
+![image](https://github.com/user-attachments/assets/591aea0c-ba03-405a-9f96-8da34cba8b22)
+![image](https://github.com/user-attachments/assets/e11194e6-bf08-42b5-a2c2-e4f4f489d754)
+## XOR 
+ TotalError = 0. Перцептрон работает корректно. Код для работы этой функции:
+ ```py
+ using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.IO;
 
+public class XORNetwork : MonoBehaviour
+{
+    [System.Serializable]
+    public class DataSet
+    {
+        public double[] inputs;
+        public double target;
+    }
+
+    [SerializeField] private string modelName;
+    [SerializeField] private int iterations = 20; // Увеличил количество итераций для обучения
+
+    [SerializeField] private GameObject inputObj1;
+    [SerializeField] private GameObject inputObj2;
+    [SerializeField] private GameObject outputObj;
+
+    private Color outputColor;
+
+    public DataSet[] data;
+
+    private double[,] inputToHiddenWeights;
+    private double[] hiddenToOutputWeights;
+    private double[] hiddenLayer;
+    private double[] hiddenBiases;
+    private double outputBias;
+    private double learningRate = 0.1;
+
+    private StreamWriter fileWriter = new StreamWriter("trainingResults.csv");
+
+    void InitializeNetwork()
+    {
+        inputToHiddenWeights = new double[2, 2];
+        hiddenToOutputWeights = new double[2];
+        hiddenBiases = new double[2];
+
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < 2; j++)
+            {
+                inputToHiddenWeights[i, j] = Random.Range(-1.0f, 1.0f);
+            }
+            hiddenToOutputWeights[i] = Random.Range(-1.0f, 1.0f);
+            hiddenBiases[i] = Random.Range(-1.0f, 1.0f);
+        }
+
+        outputBias = Random.Range(-1.0f, 1.0f);
+        hiddenLayer = new double[2];
+    }
+
+    double ApplyActivationFunction(double value)
+    {
+        return 1.0 / (1.0 + Mathf.Exp((float)-value));
+    }
+
+    double DerivativeOfActivation(double value)
+    {
+        return value * (1 - value);
+    }
+
+    void TrainNetwork(int epochs)
+    {
+        InitializeNetwork();
+
+        for (int epoch = 1; epoch <= epochs; epoch++)
+        {
+            double cumulativeError = 0;
+
+            foreach (var example in data)
+            {
+                // Propagate through hidden layer
+                for (int i = 0; i < 2; i++)
+                {
+                    hiddenLayer[i] = 0;
+                    for (int j = 0; j < 2; j++)
+                    {
+                        hiddenLayer[i] += example.inputs[j] * inputToHiddenWeights[j, i];
+                    }
+                    hiddenLayer[i] += hiddenBiases[i];
+                    hiddenLayer[i] = ApplyActivationFunction(hiddenLayer[i]);
+                }
+
+                // Calculate output
+                double output = 0;
+                for (int i = 0; i < 2; i++)
+                {
+                    output += hiddenLayer[i] * hiddenToOutputWeights[i];
+                }
+                output += outputBias;
+                output = ApplyActivationFunction(output);
+
+                double error = example.target - output;
+                double outputErrorGradient = error * DerivativeOfActivation(output);
+
+                // Update weights for the hidden layer and output layer
+                for (int i = 0; i < 2; i++)
+                {
+                    double hiddenError = outputErrorGradient * hiddenToOutputWeights[i];
+                    double hiddenErrorGradient = hiddenError * DerivativeOfActivation(hiddenLayer[i]);
+
+                    for (int j = 0; j < 2; j++)
+                    {
+                        inputToHiddenWeights[j, i] += learningRate * hiddenErrorGradient * example.inputs[j];
+                    }
+
+                    hiddenBiases[i] += learningRate * hiddenErrorGradient;
+                    hiddenToOutputWeights[i] += learningRate * outputErrorGradient * hiddenLayer[i];
+                }
+
+                outputBias += learningRate * outputErrorGradient;
+
+                cumulativeError += Mathf.Abs((float)error);
+            }
+        }
+    }
+
+    double PredictOutput(double[] inputs)
+    {
+        // Forward pass
+        for (int i = 0; i < 2; i++)
+        {
+            hiddenLayer[i] = 0;
+            for (int j = 0; j < 2; j++)
+            {
+                hiddenLayer[i] += inputs[j] * inputToHiddenWeights[j, i];
+            }
+            hiddenLayer[i] += hiddenBiases[i];
+            hiddenLayer[i] = ApplyActivationFunction(hiddenLayer[i]);
+        }
+
+        double result = 0;
+        for (int i = 0; i < 2; i++)
+        {
+            result += hiddenLayer[i] * hiddenToOutputWeights[i];
+        }
+        result += outputBias;
+        return ApplyActivationFunction(result) > 0.5 ? 1 : 0;
+    }
+
+    void Start()
+    {
+        TrainNetwork(iterations);
+        
+        // Получаем данные от объектов
+        float input1 = Mathf.Round(inputObj1.GetComponent<Renderer>().material.color.r);
+        float input2 = Mathf.Round(inputObj2.GetComponent<Renderer>().material.color.r);
+
+        double[] inputValues = { input1, input2 };
+        float result = (float)PredictOutput(inputValues);
+
+        outputColor = new Color(result, result, result);
+        outputObj.GetComponent<Renderer>().material.color = outputColor;
+    }
+
+    [System.Serializable]
+    private class DataCollection
+    {
+        public string[][] values;
+    }
+}
+```
+![image](https://github.com/user-attachments/assets/019e248f-5711-4188-8169-2123e2e2382f)
+![image](https://github.com/user-attachments/assets/c69a13ec-0657-4412-84d7-57c5c94c8908)
+## Задача 2 Необходимо построить графики, показывающие, как изменяется ошибка обучения в зависимости от количества эпох. При этом важно указать, от каких факторов зависит требуемое количество эпох для достижения оптимальных результатов в обу
+В простых задачах, таких как AND , OR и NAND , которые являются линейно разделимыми , однослойный перцептрон способен эффективно решать задачу. В таких случаях количество эпох обучения — то есть число полных проходов по обучающим данным — может быть относительно небольшим. Этого достаточно, чтобы ошибка обучения снизилась до минимального уровня.
+На старте обучения ошибка обычно достаточно высока. Это связано с тем, что веса нейронной сети инициализируются случайным образом, и, следовательно, выходы сети на первых этапах сильно отличаются от ожидаемых. Однако по мере того как процесс обучения продолжается, алгоритм постепенно корректирует веса, основываясь на полученных ошибках, что приводит к снижению ошибки и улучшению качества предсказаний.
+Но при решении более сложных задач, таких как XOR , ситуация значительно меняется. Для этой задачи данные нелинейно разделимы , что делает задачу невозможной для решения с использованием однослойного перцептрона, даже если количество эпох будет очень большим. Это ограничение обусловлено архитектурой однослойного перцептрона, который не способен выявлять нелинейные зависимости в данных.
+Для решения таких задач необходимы многослойные перцептроны (нейронные сети с несколькими скрытыми слоями). Многослойная структура позволяет модели выявлять более сложные зависимости, что делает возможным решение задач, таких как XOR, которые не могут быть решены с помощью однослойного перцептрона.
+## Задание 3: Построить визуальную модель работы перцептрона на сцене Unity.
+Функции и зависимости перекидываем на объекты
+![image](https://github.com/user-attachments/assets/9f4b17cb-c408-4b07-a0b2-c91cb401ae76)
+![image](https://github.com/user-attachments/assets/e540b1f4-172e-4161-923c-8dd9f189e422)
 ## Выводы
-
+Лабораторная работа позволила углубиться в принципы работы перцептрона, изучить его эффективность на различных задачах, а также исследовать влияние архитектуры сети и числа эпох на качество обучения. Мы продемонстрировали, как многослойные модели решают задачи, которые не под силу однослойным сетям. 
